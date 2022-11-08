@@ -45,12 +45,17 @@ library(readxl) # import excel files
 
 ```{r}
 # Just Study 1
-d <- read_sav('data/Empathy Gap Study 1 data.sav')
+setwd("~/Desktop/psych251_problem_sets/ps3/Group A/Choice 1/data")
+d <- read_sav('Empathy Gap Study 1 data.sav')
 ```
 
 # Step 3: Tidy data
 
 ```{r}
+
+# just pick the relevant columns
+d_new <- select(d, ID, condition, exchangeinfo)
+#View(d_new)
 
 ```
 
@@ -63,6 +68,28 @@ d <- read_sav('data/Empathy Gap Study 1 data.sav')
 ```{r}
 # reproduce the above results here
 
+# Only 10 of the 61 participants in the hypothetical condition chose to exchange contact information with the unattractive potential date (16%).
+
+d_hypo_table <- d_new %>% 
+  filter(condition == 0) %>% # found in SPSS that 0 is hypothetical 1 is real, any way to find in R? 
+  {function(x) table(x$exchangeinfo)}() # 10 exchanged, 51 did not
+d_hypo_table 
+
+d_hypo_percent <- {function(x) (x[1]/sum(x))}(d_hypo_table) %>% 
+  round(2) # 16% exchanged
+d_hypo_percent 
+  
+# In contrast, 26 of the 71 participants in the real condition chose to exchange contact information (37%).
+
+d_real_table <- d_new %>% 
+  filter(condition == 1) %>% # found in SPSS that 0 is hypothetical 1 is real, any way to find in R? 
+  {function(x) table(x$exchangeinfo)}() # 26 exchanged, 45 did not
+d_real_table 
+
+d_real_percent <- {function(x) (x[1]/sum(x))}(d_real_table) %>% 
+  round(2) # 37% exchanged
+d_real_percent 
+
 ```
 
 ## Inferential statistics
@@ -74,20 +101,22 @@ Hint: if you are using the function chisq.test(), make sure to set the continuit
 ```{r}
 # reproduce the above results here
 
+chisq.test(d_new$condition, d_new$exchangeinfo, correct = FALSE)
+
 ```
 
 # Step 5: Reflection
 
 Were you able to reproduce the results you attempted to reproduce? If not, what part(s) were you unable to reproduce?
 
-> ANSWER HERE
+> Yes
 
 How difficult was it to reproduce your results? 
 
-> ANSWER HERE
+> Easy
 
 What aspects made it difficult? What aspects made it easy?
 
-> ANSWER HERE
+> The calculation was very straightforward 
 
 
