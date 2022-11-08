@@ -37,25 +37,44 @@ library(tidyverse) # for data munging
 library(knitr) # for kable table formating
 library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
 library(readxl) # import excel files
-
-# #optional packages/functions:
-# library(afex) # anova functions
-# library(ez) # anova functions 2
-# library(scales) # for plotting
-# std.err <- function(x) sd(x)/sqrt(length(x)) # standard error
+library(afex) # anova functions
+library(ez) # anova functions 2
+library(scales) # for plotting
+library(Rmisc)
+library(rstatix)
+std.err <- function(x) sd(x)/sqrt(length(x)) # standard error
 ```
 
 # Step 2: Load data
 
 ```{r}
 # Just Experiment 2
-data_path <- 'data/DeLaFuenteEtAl_2014_RawData.xls'
+setwd("~/Desktop/psych251_problem_sets/ps3/Group B/Choice 3/data")
+data_path <- 'DeLaFuenteEtAl_2014_RawData.xls'
 d <- read_excel(data_path, sheet=3)
 ```
 
 # Step 3: Tidy data
 
 ```{r}
+
+names(d)
+colnames(d) <- c('group', 'participant', 'subscale', 'item', 'agreement')
+d$agreement <- sapply(d$agreement, as.numeric)
+#View(d)
+
+describe_d <- d %>%
+  group_by(participant, group) %>%
+  summarize(n())
+#View(describe_d)
+
+d <- filter(d, participant != 40, participant != 25, participant != 24) 
+
+d_wide <- pivot_wider(data = d, names_from = item, values_from = agreement)
+colnames(d_wide) <- c('group', 'participant', 'subscale', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7', 'Q8', 'Q9', 'Q10', 'Q11', 'Q12', 'Q13', 'Q14', 'Q15', 'Q16', 'Q17', 'Q18', 'Q19', 'Q20', 'Q21')
+d_wide <- d_wide %>%
+  mutate(average_agreement = rowMeans(d_wide[ , c('Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7', 'Q8', 'Q9', 'Q10', 'Q11', 'Q12', 'Q13', 'Q14', 'Q15', 'Q16', 'Q17', 'Q18', 'Q19', 'Q20', 'Q21')], na.rm = T))
+#View(d_wide)
 
 ```
 
@@ -65,6 +84,8 @@ d <- read_excel(data_path, sheet=3)
 
 ```{r}
 
+# I am not sure what to do here? 
+
 ```
 
 ## Descriptive statistics
@@ -72,6 +93,17 @@ d <- read_excel(data_path, sheet=3)
 Try to recreate Figure 2 (fig2.png, also included in the same folder as this Rmd file):
 
 ```{r}
+
+names(d_wide)
+
+d_summary <- summarySE(d_wide, measurevar = 'average_agreement', groupvars = c('group', 'subscale'), na.rm = TRUE)
+d_summary
+
+ggplot(data = d_summary, 
+       aes(y = average_agreement, x = group, fill = subscale)) +
+       geom_bar(position = position_dodge(), stat = 'identity') +
+       geom_errorbar(aes(ymin = average_agreement - se, ymax = average_agreement + se), width = .3, position = position_dodge(.9)) +
+       labs(x = "Group", y = "Rating")
 
 ```
 
@@ -82,12 +114,20 @@ Try to recreate Figure 2 (fig2.png, also included in the same folder as this Rmd
 ```{r}
 # reproduce the above results here
 
+anova <- aov(average_agreement ~ group*subscale, data = d_wide)
+summary(aov_mix)
+
 ```
 
 > Moroccans showed greater agreement with past-focused statements than Spaniards did, t(78) = 4.04, p = .001, 
 
 ```{r}
 # reproduce the above results here
+
+d_wide_past <- d_wide %>%
+  filter(subscale == 'PAST')
+
+t.test(average_agreement ~ group, data = d_wide_past)
 
 ```
 
@@ -96,18 +136,23 @@ Try to recreate Figure 2 (fig2.png, also included in the same folder as this Rmd
 ```{r}
 # reproduce the above results here
 
+d_wide_future <- d_wide %>%
+  filter(subscale == 'FUTURE')
+
+t.test(average_agreement ~ group, data = d_wide_future)
+
 ```
 
 # Step 5: Reflection
 
 Were you able to reproduce the results you attempted to reproduce? If not, what part(s) were you unable to reproduce?
 
-> ANSWER HERE
+> No, I think I did something wrong with data wrangling because I couldn't figure out how to proceed unless I got rid of the three atypical participants from the dataset, but I wanted to finish the rest of the assignment so I just proceeded with deleting the three participants, and I think that made my result look different from the original paper 
 
 How difficult was it to reproduce your results? 
 
-> ANSWER HERE
+> Difficult, I was having a hard time with dealing with the three atypical responses
 
 What aspects made it difficult? What aspects made it easy?
 
-> ANSWER HERE
+> I still don't know what was the best way to deal with the three atypical responses
