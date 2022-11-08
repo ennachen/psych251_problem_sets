@@ -65,7 +65,7 @@ d$agreement <- sapply(d$agreement, as.numeric)
 
 describe_d <- d %>%
   group_by(participant, group) %>%
-  summarize(n())
+  dplyr::summarize(n())
 #View(describe_d)
 
 d <- filter(d, participant != 40, participant != 25, participant != 24) 
@@ -114,8 +114,8 @@ ggplot(data = d_summary,
 ```{r}
 # reproduce the above results here
 
-anova <- aov(average_agreement ~ group*subscale, data = d_wide)
-summary(aov_mix)
+anovaresult <- aov(average_agreement ~ group*subscale, data = d_wide)
+summary(anovaresult)
 
 ```
 
